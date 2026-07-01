@@ -1,0 +1,123 @@
+<div class="profile-page">
+
+  <div class="profile-container">
+
+    <!-- LEFT SIDEBAR CARD -->
+    <div class="profile-side">
+
+      <div class="avatar-box">
+        <img [src]="avatarUrl" class="avatar" alt="Avatar">
+
+        @if (previewAvatar) {
+          <div class="preview-badge">Aperçu</div>
+        }
+      </div>
+
+      <h2>{{ user?.first_name }} {{ user?.last_name }}</h2>
+      <p class="role">{{ getRoleDisplay() }}</p>
+
+      <div class="side-info">
+        <p>{{ user?.email }}</p>
+        <p>{{ user?.phone }}</p>
+      </div>
+
+      @if (!editMode) {
+        <button class="btn edit" (click)="enableEdit()">
+          Modifier le profil
+        </button>
+      }
+
+    </div>
+
+    <!-- RIGHT FORM CARD -->
+    <div class="profile-main">
+
+      <h3>Informations personnelles</h3>
+
+      @if (error) {
+        <div class="alert alert-danger">
+          <span class="alert-icon">⚠️</span>
+          <span class="alert-text">{{ error }}</span>
+        </div>
+      }
+
+      @if (success) {
+        <div class="alert alert-success">
+          <span class="alert-icon">✓</span>
+          <span class="alert-text">{{ success }}</span>
+        </div>
+      }
+
+      <div class="grid">
+
+        <div class="field">
+          <label>Prénom</label>
+          <input [(ngModel)]="form.first_name" [disabled]="!editMode">
+        </div>
+
+        <div class="field">
+          <label>Nom</label>
+          <input [(ngModel)]="form.last_name" [disabled]="!editMode">
+        </div>
+
+        <div class="field">
+          <label>Adresse e-mail</label>
+          <input [(ngModel)]="form.email" disabled>
+        </div>
+
+        <div class="field">
+          <label>Numéro de téléphone</label>
+          <input [(ngModel)]="form.phone" [disabled]="!editMode">
+        </div>
+
+        <div class="field">
+          <label>Âge</label>
+          <input type="number" [(ngModel)]="form.age" [disabled]="!editMode">
+        </div>
+
+        <div class="field full">
+          <label>Biographie</label>
+          <input [(ngModel)]="form.bio" [disabled]="!editMode">
+        </div>
+
+        <div class="field full">
+          <label>Photo de profil</label>
+          <label class="avatar-picker" [class.disabled]="!editMode">
+            <div class="avatar-preview-wrap">
+              @if (avatarUrl && avatarUrl !== '/assets/default-avatar.png') {
+                <img [src]="avatarUrl" class="avatar-preview-img" alt="Aperçu" />
+                @if (editMode) {
+                  <div class="avatar-overlay">Changer</div>
+                }
+              } @else {
+                <div class="avatar-placeholder">
+                  <span class="avatar-ph-icon">📷</span>
+                  <span class="avatar-ph-text">Ajouter une photo</span>
+                </div>
+              }
+            </div>
+            <input type="file" accept="image/*" (change)="onFileSelected($event)" class="file-input-hidden" [disabled]="!editMode">
+          </label>
+        </div>
+
+      </div>
+
+      @if (editMode) {
+        <div class="actions">
+
+          <button class="btn cancel" (click)="cancelEdit()">
+            Annuler
+          </button>
+
+          <button class="btn save" (click)="saveProfile()" [disabled]="loading">
+            {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+          </button>
+
+        </div>
+      }
+
+    </div>
+
+  </div>
+
+</div>

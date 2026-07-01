@@ -1,0 +1,28 @@
+    .page { display: flex; flex-direction: column; gap: 20px; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+    .page-header h2 { margin: 0; font-size: 24px; font-weight: 600; color: var(--text-primary); }
+    .subtitle { margin: 4px 0 0 0; font-size: 13px; color: var(--text-secondary); }
+
+    .form-group-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group-checkbox input {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .chk-label {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .pd-select {
+      width: 100%;
+    }
+

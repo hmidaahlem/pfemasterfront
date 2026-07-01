@@ -1,0 +1,112 @@
+<div class="page">
+
+  <!-- ─── HEADER ─── -->
+  <div class="page-header">
+    <div>
+      <h2>Gestion des Catégories</h2>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()">
+      + Ajouter une catégorie
+    </button>
+  </div>
+
+  <!-- ─── PREMIUM TABLE ─── -->
+  <div class="table-container">
+    <table class="premium-table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Type</th>
+          <th>Code</th>
+          <th style="text-align: right; width: 100px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (c of categories; track c.id) {
+          <tr>
+            <td>
+              <strong style="color: var(--text-primary);">{{ c.name }}</strong>
+            </td>
+            <td>
+              <span class="badge {{ getBadgeClass(c.type) }}">
+                {{ formatType(c.type) }}
+              </span>
+            </td>
+            <td>
+              <code style="font-family: var(--font-data); font-size: 11px; color: var(--text-secondary);">
+                {{ c.code || '-' }}
+              </code>
+            </td>
+            <td style="text-align: right;">
+              <div class="action-buttons">
+                <button class="action-btn" (click)="edit(c)" title="Modifier">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                  </svg>
+                </button>
+                <button class="action-btn danger-btn" (click)="delete(c.id)" title="Supprimer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
+        @if (categories.length === 0) {
+          <tr>
+            <td colspan="4" style="text-align: center; padding: 48px; color: var(--text-muted);">
+              Aucune catégorie enregistrée. Cliquez sur "+ Ajouter une catégorie" pour commencer.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ─── MODAL ─── -->
+  @if (showModal) {
+    <div class="modal-overlay" (click)="close()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+
+        <div class="modal-header">
+          <h3>{{ editing ? 'Modifier' : 'Créer' }} une catégorie</h3>
+          <button type="button" (click)="close()" class="close-btn">✕</button>
+        </div>
+
+        <form (ngSubmit)="save()">
+          <div class="modal-body">
+
+            <div class="form-group">
+              <label>Nom de la catégorie</label>
+              <input [(ngModel)]="form.name" name="name" required placeholder="Ex: Boissons, Ingrédients..." />
+            </div>
+
+            <div class="form-group">
+              <label>Type de produit</label>
+              <select [(ngModel)]="form.type" name="type">
+                <option value="commercial">Commercial </option>
+                <option value="matiere_premiere">Matière première </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Code de la catégorie (optionnel)</label>
+              <input [(ngModel)]="form.code" name="code" placeholder="Ex: COM-001" />
+            </div>
+
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="close()">Annuler</button>
+            <button type="submit" class="btn btn-primary">
+              {{ editing ? 'Enregistrer' : 'Créer' }}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  }
+
+</div>

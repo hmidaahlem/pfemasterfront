@@ -1,0 +1,97 @@
+
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <h2>Surveillance des Produits Alimentaires</h2>
+          <p class="subtitle">Consultez et mettez à jour les allergènes et les dates de péremption des produits FOOD</p>
+        </div>
+      </div>
+
+      @if (loading) {
+        <app-page-loading variant="table" [rows]="8" />
+      } @else {
+        <div class="table-container">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Produit</th>
+                <th>Catégorie</th>
+                <th>Allergènes</th>
+                <th>Date de Péremption</th>
+                <th>Stock</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of products; track p.id) {
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                      @if (p.image) {
+                        <img [src]="getImageUrl(p.image)" [alt]="p.name" class="product-img" />
+                      }
+                      <strong style="color: var(--text-primary);">{{ p.name }}</strong>
+                    </div>
+                  </td>
+                  <td>{{ p.category?.name || '-' }}</td>
+                  <td>
+                    @if (editingId === p.id) {
+                      <input
+                        type="text"
+                        [(ngModel)]="editAllergensText"
+                        name="allergens_{{p.id}}"
+                        placeholder="Ex: gluten, lactose"
+                        class="inline-input"
+                      />
+                    } @else {
+                      <div class="allergen-tags">
+                        @for (a of getAllergens(p); track a) {
+                          <span class="allergen-tag">{{ a }}</span>
+                        } @empty {
+                          <span style="color: var(--text-muted); font-size: 12px;">Aucun</span>
+                        }
+                      </div>
+                    }
+                  </td>
+                  <td>
+                    @if (editingId === p.id) {
+                      <input
+                        type="date"
+                        [(ngModel)]="editExpiration"
+                        name="expiration_{{p.id}}"
+                        class="inline-input"
+                      />
+                    } @else {
+                      <span class="badge" [class.badge-error]="isExpired(p.expiration_date)" [class.badge-warning]="isExpiringSoon(p.expiration_date)" [class.badge-success]="!p.expiration_date || (!isExpired(p.expiration_date) && !isExpiringSoon(p.expiration_date))">
+                        {{ p.expiration_date ? (p.expiration_date | date:'dd/MM/yyyy') : 'Non définie' }}
+                      </span>
+                    }
+                  </td>
+                  <td>{{ p.stock?.quantity || 0 }} {{ p.stock?.unit || 'pcs' }}</td>
+                  <td style="text-align: right;">
+                    @if (editingId === p.id) {
+                      <div style="display: flex; gap: 6px; justify-content: flex-end;">
+                        <button class="btn btn-primary btn-xs" (click)="saveHygiene(p)">Sauvegarder</button>
+                        <button class="btn btn-secondary btn-xs" (click)="cancelEdit()">Annuler</button>
+                      </div>
+                    } @else {
+                      <button class="btn btn-secondary btn-xs" (click)="startEdit(p)">
+                        <app-icon name="Pencil" [size]="14"></app-icon> Modifier
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+              @if (products.length === 0) {
+                <tr>
+                  <td colspan="6" style="text-align: center; padding: 48px; color: var(--text-muted);">
+                    Aucun produit alimentaire trouvé.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+

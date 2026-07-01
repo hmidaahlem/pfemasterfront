@@ -1,0 +1,301 @@
+
+    @if (loading) {
+      <app-page-loading variant="table" [rows]="10" />
+    } @else {
+      <div class="page">
+        <!-- HEADER -->
+        <div class="page-header">
+          <div>
+            <h2>Menus Hebdomadaires</h2>
+            <p class="subtitle">Planifiez les repas de la semaine et suivez l'etat des stocks</p>
+          </div>
+          <div style="display:flex; gap:12px;">
+            <button class="btn btn-secondary" (click)="openCloneModal()">📋 Cloner une semaine</button>
+            <button class="btn btn-primary" (click)="openModal()">+ Nouveau Menu</button>
+          </div>
+        </div>
+
+        <div class="menus-workspace">
+          <!-- SIDEBAR LIST (Left) -->
+          <div class="menus-sidebar">
+            <h3 class="sidebar-title">Calendrier des Menus</h3>
+            <div class="menu-list">
+              @for (menu of menus; track menu.id) {
+                <div class="menu-list-item" [class.active]="selectedMenu?.id === menu.id" (click)="selectMenu(menu)">
+                  <div class="item-header">
+                    <span class="item-icon">📅</span>
+                    <span class="badge"
+                          [class.badge-neutral]="menu.status === 'BROUILLON'"
+                          [class.badge-success]="menu.status === 'VALIDE'"
+                          [class.badge-error]="menu.status === 'REFUSE'">
+                      {{ menu.status === 'BROUILLON' ? 'Brouillon' : menu.status === 'VALIDE' ? 'Valide' : 'Refuse' }}
+                    </span>
+                  </div>
+                  <h4 class="item-name">{{ menu.name }}</h4>
+                  <span class="item-dates">Du {{ menu.start_date | date:'dd/MM' }} au {{ menu.end_date | date:'dd/MM' }}</span>
+                </div>
+              }
+              @if (menus.length === 0) {
+                <div class="empty-sidebar">Aucun menu</div>
+              }
+            </div>
+          </div>
+
+          <!-- DETAILED PREVIEW (Right) -->
+          <div class="menu-preview-panel">
+            @if (selectedMenu) {
+              <div class="preview-header">
+                <div class="preview-title-block">
+                  <span class="preview-icon">📅</span>
+                  <div>
+                    <h3>{{ selectedMenu.name }}</h3>
+                    <p class="preview-dates">Semaine du {{ selectedMenu.start_date | date:'dd/MM/yyyy' }} au {{ selectedMenu.end_date | date:'dd/MM/yyyy' }}</p>
+                  </div>
+                </div>
+
+                <div class="preview-actions">
+                  @if (selectedMenu.status === 'BROUILLON') {
+                    <button class="btn btn-secondary" (click)="editMenu(selectedMenu)">Modifier</button>
+                    <button class="btn btn-primary" style="background:var(--accent);" (click)="submitMenu(selectedMenu)">Soumettre</button>
+                  }
+                  <button class="btn btn-danger" style="padding:0 12px;" (click)="deleteMenu(selectedMenu.id)">Supprimer</button>
+                </div>
+              </div>
+
+              <!-- KPIs -->
+              <div class="preview-kpis">
+                <div class="kpi-box">
+                  <span class="kpi-label">👥 Staff Planifie</span>
+                  <span class="kpi-value">{{ selectedMenu.staff_count || 0 }} pers.</span>
+                </div>
+                <div class="kpi-box">
+                  <span class="kpi-label">🍲 Total Plats</span>
+                  <span class="kpi-value">{{ (selectedMenu.items || []).length }} plats</span>
+                </div>
+                <div class="kpi-box">
+                  <span class="kpi-label">🏷️ Statut</span>
+                  <span class="badge"
+                        [class.badge-neutral]="selectedMenu.status === 'BROUILLON'"
+                        [class.badge-success]="selectedMenu.status === 'VALIDE'"
+                        [class.badge-error]="selectedMenu.status === 'REFUSE'">
+                    {{ selectedMenu.status === 'BROUILLON' ? 'Brouillon' : selectedMenu.status === 'VALIDE' ? 'Valide' : 'Refuse' }}
+                  </span>
+                </div>
+              </div>
+
+              @if (selectedMenu.comment) {
+                <div class="preview-comment-box">
+                  <strong>⚠️ Note/Motif de rejet :</strong>
+                  <p>{{ selectedMenu.comment }}</p>
+                </div>
+              }
+
+              <!-- WEEKLY DISHES GRID -->
+              <div class="weekly-schedule-grid">
+                <h4 class="section-title">Fiche de Planification des Plats</h4>
+                <div class="grid-table-container">
+                  <table class="grid-table">
+                    <thead>
+                      <tr>
+                        <th>Repas</th>
+                        @for (day of daysList; track day.key) {
+                          <th>{{ day.label }}</th>
+                        }
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="meal-header-cell">🍲 Soupe</td>
+                        @for (day of daysList; track day.key) {
+                          <td class="dish-cell">{{ getDishName(selectedMenu, day.key, 'breakfast') }}</td>
+                        }
+                      </tr>
+                      <tr>
+                        <td class="meal-header-cell">🥗 Salade</td>
+                        @for (day of daysList; track day.key) {
+                          <td class="dish-cell">{{ getDishName(selectedMenu, day.key, 'snack') }}</td>
+                        }
+                      </tr>
+                      <tr>
+                        <td class="meal-header-cell">🍽️ Plat Principal</td>
+                        @for (day of daysList; track day.key) {
+                          <td class="dish-cell">{{ getDishName(selectedMenu, day.key, 'lunch') }}</td>
+                        }
+                      </tr>
+                      <tr>
+                        <td class="meal-header-cell">🍰 Dessert</td>
+                        @for (day of daysList; track day.key) {
+                          <td class="dish-cell">{{ getDishName(selectedMenu, day.key, 'dinner') }}</td>
+                        }
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            } @else {
+              <div class="empty-preview-state">
+                <div class="empty-icon">📂</div>
+                <h3>Selectionnez un menu</h3>
+                <p>Choisissez un menu hebdomadaire dans la liste de gauche pour afficher les details de sa planification.</p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- CREATE/EDIT MODAL -->
+        @if (showModal) {
+          <div class="modal-overlay" (click)="closeModal()">
+            <div class="modal-card modal-wide" (click)="$event.stopPropagation()">
+
+              <div class="modal-header">
+                <h3>{{ editing ? 'Modifier le Menu' : 'Nouveau Menu Hebdomadaire' }}</h3>
+                <button (click)="closeModal()" style="font-size:16px;">✕</button>
+              </div>
+
+              <form (ngSubmit)="save()">
+                <div class="modal-body">
+                  <div class="form-section">
+                    <h4>Informations Generales</h4>
+                    <div class="form-group">
+                      <label>Nom du Menu *</label>
+                      <input [(ngModel)]="form.name" name="name" placeholder="Ex: Menu Hiver - Semaine 45" required />
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Debut de la semaine *</label>
+                        <input type="date" [(ngModel)]="form.start_date" name="start_date" required />
+                      </div>
+                      <div class="form-group">
+                        <label>Fin de la semaine *</label>
+                        <input type="date" [(ngModel)]="form.end_date" name="end_date" required />
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Nombre de personnes (staff) *</label>
+                      <input type="number" [(ngModel)]="form.staff_count" name="staff_count" min="1" placeholder="Ex: 50" required />
+                    </div>
+                  </div>
+
+                  <div class="form-section" style="margin-top:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                      <h4>Planificateur Hebdomadaire</h4>
+                    </div>
+
+                    <div class="days-tabs">
+                      @for (day of daysList; track day.key) {
+                        <button type="button" class="day-tab-btn" [class.active]="activeTab === day.key" (click)="activeTab = day.key">
+                          {{ day.label }}
+                        </button>
+                      }
+                    </div>
+
+                    <div class="day-slot-card">
+                      <p class="day-hint">
+                        Saisissez les plats pour le <strong>{{ getDayLabel(activeTab) }}</strong> :
+                      </p>
+
+                      <div class="course-slot">
+                        <div class="slot-label">Soupe *</div>
+                        <select [(ngModel)]="weekPlan[activeTab].breakfast" name="breakfast_{{activeTab}}" required>
+                          <option [value]="0">-- Selectionner --</option>
+                          @for (p of foodProducts; track p.id) {
+                            <option [value]="p.id">{{ p.name }}</option>
+                          }
+                        </select>
+                      </div>
+
+                      <div class="course-slot">
+                        <div class="slot-label">Salade *</div>
+                        <select [(ngModel)]="weekPlan[activeTab].snack" name="snack_{{activeTab}}" required>
+                          <option [value]="0">-- Selectionner --</option>
+                          @for (p of foodProducts; track p.id) {
+                            <option [value]="p.id">{{ p.name }}</option>
+                          }
+                        </select>
+                      </div>
+
+                      <div class="course-slot">
+                        <div class="slot-label">Plat Principal *</div>
+                        <select [(ngModel)]="weekPlan[activeTab].lunch" name="lunch_{{activeTab}}" required>
+                          <option [value]="0">-- Selectionner --</option>
+                          @for (p of foodProducts; track p.id) {
+                            <option [value]="p.id">{{ p.name }}</option>
+                          }
+                        </select>
+                      </div>
+
+                      <div class="course-slot">
+                        <div class="slot-label">Dessert *</div>
+                        <select [(ngModel)]="weekPlan[activeTab].dinner" name="dinner_{{activeTab}}" required>
+                          <option [value]="0">-- Selectionner --</option>
+                          @for (p of foodProducts; track p.id) {
+                            <option [value]="p.id">{{ p.name }}</option>
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" (click)="closeModal()">Annuler</button>
+                  <button type="submit" class="btn btn-primary">
+                    {{ editing ? 'Sauvegarder le brouillon' : 'Creer le brouillon' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        }
+
+        <!-- CLONE MODAL -->
+        @if (showCloneModal) {
+          <div class="modal-overlay" (click)="closeCloneModal()">
+            <div class="modal-card" (click)="$event.stopPropagation()">
+              <div class="modal-header">
+                <h3>Cloner une Semaine</h3>
+                <button (click)="closeCloneModal()" style="font-size:16px;">✕</button>
+              </div>
+              <div class="modal-body">
+                <div class="form-section">
+                  <h4>Menu source</h4>
+                  <div class="form-group">
+                    <label>Selectionner un menu existant *</label>
+                    <select [(ngModel)]="cloneForm.source_menu_id" name="clone_source" required>
+                      <option [value]="0">-- Choisir --</option>
+                      @for (m of menus; track m.id) {
+                        <option [value]="m.id">{{ m.name }} ({{ m.start_date | date:'dd/MM/yyyy' }} — {{ m.end_date | date:'dd/MM/yyyy' }})</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+                <div class="form-section" style="margin-top:12px;">
+                  <h4>Semaine cible</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Debut *</label>
+                      <input type="date" [(ngModel)]="cloneForm.target_week_start" name="clone_start" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Fin *</label>
+                      <input type="date" [(ngModel)]="cloneForm.target_week_end" name="clone_end" required />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Nombre de personnes (staff)</label>
+                    <input type="number" [(ngModel)]="cloneForm.staff_count" name="clone_staff" min="1" placeholder="Conserver celui du menu source" />
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-secondary" (click)="closeCloneModal()">Annuler</button>
+                <button class="btn btn-primary" (click)="cloneMenu()" [disabled]="cloning">
+                  {{ cloning ? 'Clonage en cours...' : 'Cloner & Valider' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+

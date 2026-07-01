@@ -1,0 +1,388 @@
+
+    @if (loading) {
+      <app-page-loading variant="table" [rows]="10" />
+    } @else {
+      <div class="page">
+        <div class="page-header">
+          <h2>{{ validationMode ? 'Validation des Produits' : 'Catalogue Produits' }}</h2>
+
+          <div class="header-actions">
+            @if (userRole !== 'CHEF_CUISINE' && userRole !== 'CHEF_MAGASIN' && userRole !== 'RESPONSABLE_ACHAT') {
+              <select [(ngModel)]="filterType" (ngModelChange)="applyFilter()" class="filter-select">
+                <option value="">Tous les types</option>
+                <option value="commercial">Commercial</option>
+                <option value="matiere_premiere">Matière première</option>
+                <option value="food">Food</option>
+                <option value="plat">Plat</option>
+              </select>
+            } @else if (userRole === 'CHEF_CUISINE') {
+              <select [(ngModel)]="filterType" (ngModelChange)="applyFilter()" class="filter-select">
+                <option value="">Tous</option>
+                <option value="food">Food</option>
+                <option value="plat">Plat</option>
+              </select>
+            } @else if (userRole === 'CHEF_MAGASIN') {
+              <span class="filter-badge">Type: Réserve</span>
+            } @else if (userRole === 'RESPONSABLE_ACHAT') {
+              <span class="filter-badge">Type: Commercial + Matière première</span>
+            }
+
+            @if (userRole === 'RESPONSABLE_ACHAT' && !validationMode) {
+              <select [(ngModel)]="filterApprovalStatus" (ngModelChange)="applyFilter()" class="filter-select">
+                <option value="">Tous les statuts</option>
+                <option value="pending">En attente</option>
+                <option value="approved">Approuvé</option>
+                <option value="rejected">Refusé</option>
+              </select>
+            }
+
+            @if (!validationMode) {
+              <button class="btn btn-primary" (click)="openModal()">
+                <app-icon name="Package" [size]="14"></app-icon> Nouveau Produit
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Tabular List -->
+        <div class="table-container">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>Catégorie</th>
+                @if (userRole !== 'CHEF_CUISINE') { <th>Validation</th> }
+                <th>Service</th>
+                <th style="text-align: right;">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (p of filteredProducts; track p.id) {
+                <tr>
+                  <td>
+                    @if (p.image) {
+                      <img [src]="getImageUrl(p.image)" alt="Product" class="table-product-img" />
+                    } @else {
+                      <div class="product-icon-fallback">
+                        <app-icon name="Package" [size]="16"></app-icon>
+                      </div>
+                    }
+                  </td>
+                  <td>
+                    <div class="product-name-wrapper">
+                      <span class="product-title">{{ p.name }}</span>
+                      @if (p.description) {
+                        <span class="product-subtitle">{{ p.description }}</span>
+                      }
+                    </div>
+                  </td>
+
+                  <td>
+                    <span class="badge badge-neutral">{{ p.type }}</span>
+                  </td>
+
+                  <td>
+                    {{ p.category?.name || '-' }}
+                  </td>
+
+                  @if (userRole !== 'CHEF_CUISINE') {
+                    <td>
+                      <span class="badge" [class.badge-success]="p.approval_status === 'approved'" [class.badge-warning]="p.approval_status === 'pending'" [class.badge-error]="p.approval_status === 'rejected'">
+                        {{ p.approval_status === 'approved'
+                          ? 'Approuvé'
+                          : p.approval_status === 'pending'
+                          ? 'En attente'
+                          : 'Rejeté' }}
+                      </span>
+                    </td>
+                  }
+
+                  <td>
+                    @if (p.approval_status === 'approved') {
+                      <span class="badge" [class.badge-success]="p.is_active" [class.badge-error]="!p.is_active">
+                        {{ p.is_active ? 'Actif' : 'Inactif' }}
+                      </span>
+                    } @else {
+                      -
+                    }
+                  </td>
+
+                  <td style="text-align: right;">
+                    <div class="action-buttons">
+                      @if (!validationMode && (p.type === 'food' || p.type === 'plat')) {
+                        <button class="action-btn info-btn" (click)="openChatbot(p)" title="Copilote Nutritionnel IA">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                          </svg>
+                        </button>
+                      }
+                      @if (validationMode && p.approval_status === 'pending') {
+                        <button class="approve-btn" (click)="updateApprovalStatus(p, 'approved')" title="Approuver">
+                          <app-icon name="Check" [size]="14"></app-icon>
+                        </button>
+                        <button class="reject-btn" (click)="updateApprovalStatus(p, 'rejected')" title="Rejeter">
+                          <app-icon name="X" [size]="14"></app-icon>
+                        </button>
+                      } @else {
+                        <button class="action-btn" (click)="editProduct(p)" title="Modifier">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+                          </svg>
+                        </button>
+                        <button class="action-btn danger-btn" (click)="deleteProduct(p.id)" title="Supprimer">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        </button>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+              @if (filteredProducts.length === 0) {
+                <tr>
+                  <td colspan="7" class="empty-state">
+                    Aucun produit trouvé dans cette catégorie.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- CREATE/EDIT MODAL -->
+        @if (showModal) {
+          <div class="modal-overlay" (click)="closeModal()">
+            <div class="modal-card" (click)="$event.stopPropagation()" style="max-width: 600px;">
+              <div class="modal-header">
+                <h3>{{ editing ? 'Modifier' : 'Ajouter' }} un produit</h3>
+                <button (click)="closeModal()" style="font-size:16px;">✕</button>
+              </div>
+
+              <form (ngSubmit)="save()">
+                <div class="modal-body" style="max-height: 68vh;">
+                  <!-- NAME -->
+                  <div class="form-group">
+                    <label>Nom du Produit</label>
+                    <input [(ngModel)]="form.name" name="name" required [disabled]="isLockedField('name')" placeholder="Saisissez le nom" />
+                  </div>
+
+                  <div class="form-row">
+                    <!-- TYPE -->
+                    <div class="form-group">
+                      <label>Type</label>
+                      @if (isChefCuisine) {
+                        <select [(ngModel)]="form.type" name="type" required [disabled]="isLockedField('type')">
+                          <option value="food">Food</option>
+                          <option value="plat">Plat</option>
+                        </select>
+                      } @else if (isChefMagasin || isResponsableAchat) {
+                        <select [(ngModel)]="form.type" name="type" required [disabled]="isLockedField('type')">
+                          <option value="commercial">Commercial</option>
+                          <option value="matiere_premiere">Matière première</option>
+                        </select>
+                      } @else {
+                        <select [(ngModel)]="form.type" name="type" required [disabled]="isLockedField('type')">
+                          <option value="commercial">Commercial</option>
+                          <option value="matiere_premiere">Matière première</option>
+                          <option value="food">Food</option>
+                        </select>
+                      }
+                    </div>
+
+                    <!-- PRICE (hidden for restricted roles) -->
+                    @if (!isRestrictedRole) {
+                      <div class="form-group">
+                        <label>Prix (TND)</label>
+                        <input type="number" step="0.01" [(ngModel)]="form.price" name="price" required [disabled]="isLockedField('price')" placeholder="0.00" />
+                      </div>
+                    }
+                  </div>
+
+                  <!-- CATEGORY -->
+                  @if (form.type !== 'food' && form.type !== 'plat') {
+                    <div class="form-group">
+                      <label>Catégorie de Réserve</label>
+                      <select [(ngModel)]="form.category_id" name="category_id" required [disabled]="isLockedField('category_id')">
+                        <option value="">-- choisir une catégorie --</option>
+                        @for (c of formCategories; track c.id) {
+                          <option [value]="c.id">
+                            {{ c.name }}
+                          </option>
+                        }
+                      </select>
+                    </div>
+                  }
+
+                  <div class="form-group">
+                    <label>Unité de Stock</label>
+                    <select [(ngModel)]="form.unit" name="unit" required [disabled]="isLockedField('unit')">
+                      <option value="piece">piece</option>
+                      <option value="kg">kg</option>
+                  <!--   <option value="g">g</option>-->
+                      <option value="liter">litre</option>
+                      <!--<option value="ml">Millilitre (ml)</option>-->
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Description & Notes</label>
+                    <textarea [(ngModel)]="form.description" name="description" rows="3" placeholder="Notes complémentaires..."></textarea>
+                  </div>
+
+                  <!-- ALLERGENS (hidden for restricted roles or non-food products or Responsable Achat) -->
+                  @if ((form.type === 'food' || form.type === 'plat') && !isRestrictedRole && !isResponsableAchat) {
+                    <div class="form-group">
+                      <label>Allergènes </label>
+                      <input [(ngModel)]="form.allergens_text" name="allergens" [disabled]="isLockedField('allergens')" placeholder="Ex: gluten, lactose, fruits à coque" />
+                    </div>
+                  }
+
+                  <!-- EXPIRATION (hidden for restricted roles or non-food products or Responsable Achat) -->
+                  @if ((form.type === 'food' || form.type === 'plat') && !isRestrictedRole && !isResponsableAchat) {
+                    <div class="form-group">
+                      <label>Date limite de consommation (DLC)</label>
+                      <input type="date" [(ngModel)]="form.expiration_date" name="expiration_date" [disabled]="isLockedField('expiration_date')" />
+                    </div>
+                  }
+
+                  <!-- USAGE STATUS -->
+                  @if (editing && selectedProductApprovalStatus === 'approved') {
+                    <div class="form-group">
+                      <label>Statut en service</label>
+                      <select [(ngModel)]="form.usage_status" name="usage_status">
+                        <option value="IN_USE">En service </option>
+                        <option value="NOT_IN_USE">Hors service</option>
+                        <option value="OUT_OF_STOCK">Rupture de stock </option>
+                      </select>
+                    </div>
+                  }
+
+                  <!-- IMAGE UPLOAD -->
+                  <div class="form-group">
+                    <label>Image de l'article</label>
+                    <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input" [disabled]="isLockedField('image')" />
+                    @if (imagePreview) {
+                      <img [src]="imagePreview" class="preview-image" alt="Aperçu" />
+                    }
+                  </div>
+
+                  <!-- RECIPE BUILDER -->
+                  @if (form.type === 'food' || form.type === 'plat') {
+                    <div class="form-group">
+                      <label>Quantité par lot </label>
+                      <input type="number" [(ngModel)]="form.quantity_per_batch" name="quantity_per_batch" min="1" required />
+                    </div>
+
+                    <div class="recipe-section">
+                      <div class="recipe-header">
+                        <h4>Fiche Recette </h4>
+                        <button type="button" class="btn btn-secondary btn-sm" (click)="addRecipeIngredient()" [disabled]="isLockedField('recipe')">
+                          + Ajouter Ingrédient
+                        </button>
+                      </div>
+
+                      @if (recipeIngredients.length === 0) {
+                        <p class="recipe-empty">Aucun ingrédient associé à cette recette.</p>
+                      } @else {
+                        @for (ing of recipeIngredients; track $index; let idx = $index) {
+                          <div class="ingredient-row">
+                            <select [(ngModel)]="ing.product_id" name="ing_id_{{idx}}" required [disabled]="isLockedField('recipe')">
+                              <option value="0">-- Choisir --</option>
+                              @for (avail of availableIngredients; track avail.id) {
+                                <option [value]="avail.id">{{ avail.name }}</option>
+                              }
+                            </select>
+
+                            <input type="number" step="0.01" [(ngModel)]="ing.quantity" name="ing_qty_{{idx}}" placeholder="Qté" required [disabled]="isLockedField('recipe')" />
+
+                            <select [(ngModel)]="ing.unit" name="ing_unit_{{idx}}" required [disabled]="isLockedField('recipe')">
+                              <option value="piece">Pièce</option>
+                              <option value="kg">kg</option>
+                          <!--   <option value="g">g</option>-->
+                              <option value="liter">Litre</option>
+                           <!--     <option value="ml">ml</option>-->
+                            </select>
+
+                            <button type="button" class="btn-remove" (click)="removeRecipeIngredient(idx)" [disabled]="isLockedField('recipe')">
+                              ✕
+                            </button>
+                          </div>
+                        }
+                      }
+                    </div>
+                  }
+                </div>
+
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" (click)="closeModal()">
+                    Annuler
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    {{ editing ? 'Enregistrer' : 'Créer le Produit' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        }
+
+        <!-- IA NUTRITIONAL DRAWER -->
+        @if (showChatbot && chatbotProduct) {
+          <div class="chat-overlay" (click)="closeChatbot()">
+            <div class="chat-drawer" (click)="$event.stopPropagation()">
+              <div class="chat-header">
+                <div class="chat-title">
+                  <span class="chat-avatar-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2DD4BF" stroke-width="2">
+                      <path d="M12 2a10 10 0 0 1 10 10c0 5.523-4.477 10-10 10S2 17.523 2 12A10 10 0 0 1 12 2z"/>
+                      <path d="M12 6v6l4 2"/>
+                    </svg>
+                  </span>
+                  <div>
+                    <h4>Copilote Nutritionnel IA</h4>
+                    <span>{{ chatbotProduct.name }}</span>
+                  </div>
+                </div>
+                <button class="chat-close" (click)="closeChatbot()">✕</button>
+              </div>
+
+              <div class="chat-body">
+                <div class="chat-messages">
+                  @for (msg of chatbotMessages; track $index) {
+                    <div class="chat-bubble" [class.self]="msg.sender === 'user'">
+                      <div class="bubble-content">
+                        <p>{{ msg.text }}</p>
+                      </div>
+                    </div>
+                  }
+                  @if (chatbotLoading) {
+                    <div class="chat-bubble">
+                      <div class="bubble-content loading-bubble">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <div class="chat-chips">
+                <button (click)="askQuickQuestion('Quels sont les allergènes présents ?')">Allergènes ?</button>
+                <button (click)="askQuickQuestion('Quels sont les ingrédients ?')">Ingrédients ?</button>
+                <button (click)="askQuickQuestion('Est-ce adapté pour un régime sans gluten ?')">Sans Gluten ?</button>
+              </div>
+
+              <div class="chat-footer">
+                <input type="text" [(ngModel)]="chatbotInput" (keyup.enter)="sendChatbotMessage()" placeholder="Posez une question sur le produit..." [disabled]="chatbotLoading" />
+                <button class="chat-send" (click)="sendChatbotMessage()" [disabled]="chatbotLoading">➤</button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }

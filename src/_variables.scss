@@ -1,0 +1,62 @@
+
+$bg-primary:     #F8FAFC; // Sleek light background
+$bg-secondary:   #F1F5F9; // Slate 100 for secondary areas
+$bg-sidebar:     #0F172A; // Slate 900 for dark navy sidebar
+$bg-sidebar-alt: #1E293B; // Slate 800 for active states / separators
+
+$teal-dark:      #115E59; // Teal 800
+$teal-mid:       #0F766E; // Teal 700
+$teal-base:      #0D9488; // Teal 600 - Confident Teal Accent
+$teal-light:     #2DD4BF; // Teal 400
+$teal-pale:      #CCFBF1; // Teal 100
+
+$slate-900:      #0F172A;
+$slate-800:      #1E293B;
+$slate-700:      #334155;
+$slate-600:      #475569;
+$slate-500:      #64748B;
+$slate-400:      #94A3B8;
+$slate-300:      #CBD5E1;
+$slate-200:      #E2E8F0;
+$slate-100:      #F1F5F9;
+$slate-50:       #F8FAFC;
+
+$color-accent:   #0D9488; // Electric Teal
+$color-warning:  #F59E0B; // Amber 500
+$color-error:    #EF4444; // Red 500
+$color-success:  #10B981; // Emerald 500
+$color-info:     #3B82F6; // Blue 500
+
+// ─── Text ───
+$text-primary:   #1E293B; // Dark slate for text
+$text-secondary: #475569; // Mid slate
+$text-muted:     #94A3B8; // Muted slate
+$text-inverse:   #F8FAFC; // Light text
+
+// ─── Surfaces ───
+$surface:        #FFFFFF;
+$surface-alt:    #F1F5F9;
+$background:     #F8FAFC;
+$bg-card:        #FFFFFF;
+
+// ─── Borders ───
+$border:         #E2E8F0; // 1px low opacity slate-200 border
+$border-light:   #F1F5F9;
+
+// ─── Shadows (Subtle, professional) ───
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.05);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+// ─── Radii ───
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-full: 9999px;
+
+// ─── Fonts ───
+$font-body:    'Inter', sans-serif;
+$font-mono:    'JetBrains Mono', monospace;
+
+// ─── Transitions ───
+$transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
