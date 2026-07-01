@@ -217,104 +217,109 @@
                     </div>
                   }
 
-                  <div class="form-group">
-                    <label>Unité de Stock</label>
-                    <select [(ngModel)]="form.unit" name="unit" required [disabled]="isLockedField('unit')">
-                      <option value="piece">piece</option>
-                      <option value="kg">kg</option>
-                  <!--   <option value="g">g</option>-->
-                      <option value="liter">litre</option>
-                      <!--<option value="ml">Millilitre (ml)</option>-->
-                    </select>
-                  </div>
+               <!-- UNITÉ DE STOCK (Masqué si c'est un plat) -->
+@if (form.type !== 'plat') {
+  <div class="form-group">
+    <label>Unité de Stock</label>
+    <select [(ngModel)]="form.unit" name="unit" required [disabled]="isLockedField('unit')">
+      <option value="piece">piece</option>
+      <option value="kg">kg</option>
+      <option value="liter">litre</option>
+    </select>
+  </div>
+}
 
-                  <div class="form-group">
-                    <label>Description & Notes</label>
-                    <textarea [(ngModel)]="form.description" name="description" rows="3" placeholder="Notes complémentaires..."></textarea>
-                  </div>
+<div class="form-group">
+  <label>Description & Notes</label>
+  <textarea [(ngModel)]="form.description" name="description" rows="3" placeholder="Notes complémentaires..."></textarea>
+</div>
 
-                  <!-- ALLERGENS (hidden for restricted roles or non-food products or Responsable Achat) -->
-                  @if ((form.type === 'food' || form.type === 'plat') && !isRestrictedRole && !isResponsableAchat) {
-                    <div class="form-group">
-                      <label>Allergènes </label>
-                      <input [(ngModel)]="form.allergens_text" name="allergens" [disabled]="isLockedField('allergens')" placeholder="Ex: gluten, lactose, fruits à coque" />
-                    </div>
-                  }
+<!-- ALLERGENS -->
+@if ((form.type === 'food' || form.type === 'plat') && !isRestrictedRole && !isResponsableAchat) {
+  <div class="form-group">
+    <label>Allergènes </label>
+    <input [(ngModel)]="form.allergens_text" name="allergens" [disabled]="isLockedField('allergens')" placeholder="Ex: gluten, lactose, fruits à coque" />
+  </div>
+}
 
-                  <!-- EXPIRATION (hidden for restricted roles or non-food products or Responsable Achat) -->
-                  @if ((form.type === 'food' || form.type === 'plat') && !isRestrictedRole && !isResponsableAchat) {
-                    <div class="form-group">
-                      <label>Date limite de consommation (DLC)</label>
-                      <input type="date" [(ngModel)]="form.expiration_date" name="expiration_date" [disabled]="isLockedField('expiration_date')" />
-                    </div>
-                  }
+<!-- EXPIRATION -->
+@if ((form.type === 'food' || form.type === 'plat') && !isRestrictedRole && !isResponsableAchat) {
+  <div class="form-group">
+    <label>Date limite de consommation (DLC)</label>
+    <input type="date" [(ngModel)]="form.expiration_date" name="expiration_date" [disabled]="isLockedField('expiration_date')" />
+  </div>
+}
 
-                  <!-- USAGE STATUS -->
-                  @if (editing && selectedProductApprovalStatus === 'approved') {
-                    <div class="form-group">
-                      <label>Statut en service</label>
-                      <select [(ngModel)]="form.usage_status" name="usage_status">
-                        <option value="IN_USE">En service </option>
-                        <option value="NOT_IN_USE">Hors service</option>
-                        <option value="OUT_OF_STOCK">Rupture de stock </option>
-                      </select>
-                    </div>
-                  }
+<!-- USAGE STATUS -->
+@if (editing && selectedProductApprovalStatus === 'approved') {
+  <div class="form-group">
+    <label>Statut en service</label>
+    <select [(ngModel)]="form.usage_status" name="usage_status">
+      <option value="IN_USE">En service </option>
+      <option value="NOT_IN_USE">Hors service</option>
+      <option value="OUT_OF_STOCK">Rupture de stock </option>
+    </select>
+  </div>
+}
 
-                  <!-- IMAGE UPLOAD -->
-                  <div class="form-group">
-                    <label>Image de l'article</label>
-                    <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input" [disabled]="isLockedField('image')" />
-                    @if (imagePreview) {
-                      <img [src]="imagePreview" class="preview-image" alt="Aperçu" />
-                    }
-                  </div>
+<!-- IMAGE UPLOAD -->
+<div class="form-group">
+  <label>Image de l'article</label>
+  <input type="file" (change)="onFileSelected($event)" accept="image/*" class="file-input" [disabled]="isLockedField('image')" />
+  @if (imagePreview) {
+    <img [src]="imagePreview" class="preview-image" alt="Aperçu" />
+  }
+</div>
 
-                  <!-- RECIPE BUILDER -->
-                  @if (form.type === 'food' || form.type === 'plat') {
-                    <div class="form-group">
-                      <label>Quantité par lot </label>
-                      <input type="number" [(ngModel)]="form.quantity_per_batch" name="quantity_per_batch" min="1" required />
-                    </div>
+<!-- RECIPE BUILDER -->
+@if (form.type === 'food' || form.type === 'plat') {
 
-                    <div class="recipe-section">
-                      <div class="recipe-header">
-                        <h4>Fiche Recette </h4>
-                        <button type="button" class="btn btn-secondary btn-sm" (click)="addRecipeIngredient()" [disabled]="isLockedField('recipe')">
-                          + Ajouter Ingrédient
-                        </button>
-                      </div>
+  <!-- QUANTITÉ PAR LOT (Affiché uniquement pour 'food', masqué pour 'plat') -->
+  @if (form.type !== 'plat') {
+    <div class="form-group">
+      <label>Quantité par lot </label>
+      <input type="number" [(ngModel)]="form.quantity_per_batch" name="quantity_per_batch" min="1" required />
+    </div>
+  }
 
-                      @if (recipeIngredients.length === 0) {
-                        <p class="recipe-empty">Aucun ingrédient associé à cette recette.</p>
-                      } @else {
-                        @for (ing of recipeIngredients; track $index; let idx = $index) {
-                          <div class="ingredient-row">
-                            <select [(ngModel)]="ing.product_id" name="ing_id_{{idx}}" required [disabled]="isLockedField('recipe')">
-                              <option value="0">-- Choisir --</option>
-                              @for (avail of availableIngredients; track avail.id) {
-                                <option [value]="avail.id">{{ avail.name }}</option>
-                              }
-                            </select>
+  <div class="recipe-section">
+    <div class="recipe-header">
+      <h4>Fiche Recette </h4>
+      <button type="button" class="btn btn-secondary btn-sm" (click)="addRecipeIngredient()" [disabled]="isLockedField('recipe')">
+        + Ajouter Ingrédient
+      </button>
+    </div>
 
-                            <input type="number" step="0.01" [(ngModel)]="ing.quantity" name="ing_qty_{{idx}}" placeholder="Qté" required [disabled]="isLockedField('recipe')" />
+    @if (recipeIngredients.length === 0) {
+      <p class="recipe-empty">Aucun ingrédient associé à cette recette.</p>
+    } @else {
+      @for (ing of recipeIngredients; track $index; let idx = $index) {
+        <div class="ingredient-row">
+          <select [(ngModel)]="ing.product_id" name="ing_id_{{idx}}" required [disabled]="isLockedField('recipe')">
+            <option value="0">-- Choisir --</option>
+            @for (avail of availableIngredients; track avail.id) {
+              <option [value]="avail.id">{{ avail.name }}</option>
+            }
+          </select>
 
-                            <select [(ngModel)]="ing.unit" name="ing_unit_{{idx}}" required [disabled]="isLockedField('recipe')">
-                              <option value="piece">Pièce</option>
-                              <option value="kg">kg</option>
-                          <!--   <option value="g">g</option>-->
-                              <option value="liter">Litre</option>
-                           <!--     <option value="ml">ml</option>-->
-                            </select>
+          <input type="number" step="0.01" [(ngModel)]="ing.quantity" name="ing_qty_{{idx}}" placeholder="Qté" required [disabled]="isLockedField('recipe')" />
 
-                            <button type="button" class="btn-remove" (click)="removeRecipeIngredient(idx)" [disabled]="isLockedField('recipe')">
-                              ✕
-                            </button>
-                          </div>
-                        }
-                      }
-                    </div>
-                  }
+          <select [(ngModel)]="ing.unit" name="ing_unit_{{idx}}" required [disabled]="isLockedField('recipe')">
+            <option value="piece">Pièce</option>
+            <option value="kg">kg</option>
+            <option value="liter">Litre</option>
+          </select>
+
+          <button type="button" class="btn-remove" (click)="removeRecipeIngredient(idx)" [disabled]="isLockedField('recipe')">
+            ✕
+          </button>
+        </div>
+      }
+    }
+  </div>
+}
+
+                  
                 </div>
 
                 <div class="modal-footer">
