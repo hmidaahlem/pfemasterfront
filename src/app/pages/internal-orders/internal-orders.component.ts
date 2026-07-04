@@ -221,22 +221,23 @@ export class InternalOrdersComponent implements OnInit {
         this.filteredCategories = cats.filter(c => allowed.includes(c.type));
         this.loadingCategories = false;
 
-        if (this.filteredCategories.length > 0) {
-          const ids = this.filteredCategories.map(c => c.id);
-          this.api.post<any>('products/by-categories', { category_ids: ids }).subscribe({
-            next: (prods: any) => {
-              this.availableProducts = prods.data || prods;
-              this.loadingProducts = false;
-            },
-            error: () => {
-              this.availableProducts = [];
-              this.loadingProducts = false;
-            }
-          });
+        const payload: any = {};
+        if (this.userRole === 'CHEF_CUISINE') {
+          payload.type = 'matiere_premiere';
         } else {
-          this.availableProducts = [];
-          this.loadingProducts = false;
+          payload.type = this.form.type;
         }
+
+        this.api.post<any>('products/by-categories', payload).subscribe({
+          next: (prods: any) => {
+            this.availableProducts = prods.data || prods;
+            this.loadingProducts = false;
+          },
+          error: () => {
+            this.availableProducts = [];
+            this.loadingProducts = false;
+          }
+        });
       },
       error: () => {
         this.loadingCategories = false;
