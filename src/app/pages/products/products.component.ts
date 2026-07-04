@@ -236,7 +236,9 @@ export class ProductsComponent implements OnInit {
           expiration_date: fullProduct.expiration_date || '',
           usage_status: fullProduct.usage_status || 'IN_USE',
           quantity_per_batch: fullProduct.quantity_per_batch || 1,
-          unit: fullProduct.stock?.unit || 'piece'
+          unit: fullProduct.stock?.unit || 'piece',
+          min_threshold: fullProduct.stock?.min_threshold || 0,
+          is_active: fullProduct.is_active !== undefined ? fullProduct.is_active : true
         };
 
         this.selectedProductApprovalStatus = fullProduct.approval_status;
@@ -254,13 +256,13 @@ export class ProductsComponent implements OnInit {
         this.showModal = true;
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
         Swal.fire({
           title: 'Erreur',
-          text: 'Impossible de charger les détails du produit.',
+          text: err.error?.message || 'Impossible de charger les détails du produit.',
           icon: 'error',
-          confirmButtonColor: '#0D9488'
+          confirmButtonColor: '#EF4444'
         });
       }
     });
@@ -281,7 +283,9 @@ export class ProductsComponent implements OnInit {
       expiration_date: '',
       usage_status: 'IN_USE',
       quantity_per_batch: 1,
-      unit: 'piece'
+      unit: 'piece',
+      min_threshold: 0,
+      is_active: true
     };
     this.selectedImageFile = null;
     this.imagePreview = null;
@@ -366,6 +370,11 @@ export class ProductsComponent implements OnInit {
     if (this.form.type === 'food' || this.form.type === 'plat') {
       formData.append('quantity_per_batch', String(this.form.quantity_per_batch || 1));
     }
+
+    if (this.form.type !== 'plat') {
+      formData.append('min_threshold', String(this.form.min_threshold || 0));
+    }
+    formData.append('is_active', this.form.is_active ? '1' : '0');
 
     if (!this.isRestrictedRole) {
       formData.append('price', String(this.form.price || 0));
