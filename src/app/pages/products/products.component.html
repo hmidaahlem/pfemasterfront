@@ -217,15 +217,22 @@
                     </div>
                   }
 
-               <!-- UNITÉ DE STOCK (Masqué si c'est un plat) -->
+<!-- UNITE DE STOCK ET SEUIL (Masqué si c'est un plat) -->
 @if (form.type !== 'plat') {
-  <div class="form-group">
-    <label>Unité de Stock</label>
-    <select [(ngModel)]="form.unit" name="unit" required [disabled]="isLockedField('unit')">
-      <option value="piece">piece</option>
-      <option value="kg">kg</option>
-      <option value="liter">litre</option>
-    </select>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Unité de Stock</label>
+      <select [(ngModel)]="form.unit" name="unit" required [disabled]="isLockedField('unit')">
+        <option value="piece">piece</option>
+        <option value="kg">kg</option>
+        <option value="liter">litre</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Seuil d'alerte min.</label>
+      <input type="number" [(ngModel)]="form.min_threshold" name="min_threshold" required [disabled]="isLockedField('min_threshold')" />
+    </div>
   </div>
 }
 
@@ -261,6 +268,12 @@
     </select>
   </div>
 }
+
+<!-- STATUS ACTIF -->
+<div class="form-group" style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
+  <input type="checkbox" [(ngModel)]="form.is_active" name="is_active" id="isActive" [disabled]="isLockedField('is_active')" style="width: auto; margin: 0;" />
+  <label for="isActive" style="margin: 0; cursor: pointer;">Produit actif (visible pour la vente/production)</label>
+</div>
 
 <!-- IMAGE UPLOAD -->
 <div class="form-group">

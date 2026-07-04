@@ -159,10 +159,8 @@ Suivi du stock en temps réel .
                   <div class="form-group">
                     <label>Type de Mouvement</label>
                     <select [(ngModel)]="movementForm.type" name="type">
-                      @if (!isSelectedProductFood) {
-                        <option value="in">Entrée de Stock</option>
-                        <option value="out">Sortie de Stock</option>
-                      }
+                      <option value="in">Entrée de Stock</option>
+                      <option value="out">Sortie de Stock</option>
                       <option value="adjustment">Ajustement direct</option>
                     </select>
                     @if (isSelectedProductFood) {
@@ -288,13 +286,11 @@ export class StocksComponent implements OnInit {
 
   openMovement(stock: Stock, type: string): void {
     this.selectedStock = stock;
-    // For food products, only adjustment is permitted — default the form accordingly
-    const defaultType = stock.product?.type === 'food' ? 'adjustment' : type;
-    this.movementForm = { type: defaultType, quantity: 1, reason: '', expiration_date: '' };
+    this.movementForm = { type: type, quantity: 1, reason: '', expiration_date: '' };
     this.fifoLots = [];
     this.stockMovements = [];
     this.showModal = true;
-    if (defaultType === 'out') {
+    if (type === 'out') {
       this.computeFIFO(1);
     }
   }
@@ -367,9 +363,20 @@ export class StocksComponent implements OnInit {
         this.load();
       },
       error: (err: any) => {
+        let errorMsg = 'Erreur lors de l\'enregistrement.';
+        if (err.error?.message) {
+          errorMsg = err.error.message;
+        }
+        if (err.error?.errors) {
+          // Flatten Laravel validation errors if present
+          const messages = Object.values(err.error.errors).flat();
+          if (messages.length > 0) {
+            errorMsg = messages[0] as string;
+          }
+        }
         Swal.fire({
           title: 'Erreur',
-          text: err.error?.message || 'Erreur lors de l\'enregistrement.',
+          text: errorMsg,
           icon: 'error',
           confirmButtonColor: '#EF4444'
         });

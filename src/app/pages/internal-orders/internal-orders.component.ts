@@ -374,10 +374,21 @@ export class InternalOrdersComponent implements OnInit {
   }
 
   updateOrderStatus(order: InternalOrder, status: string): void {
-    this.api.put<any>(`internal-orders/${order.id}/status`, { status }).subscribe(() => {
-      this.load();
-      if (this.selectedOrder && this.selectedOrder.id === order.id) {
-        this.selectedOrder.status = status as any;
+    this.api.put<any>(`internal-orders/${order.id}/status`, { status }).subscribe({
+      next: () => {
+        this.load();
+        if (this.selectedOrder && this.selectedOrder.id === order.id) {
+          this.selectedOrder.status = status as any;
+        }
+      },
+      error: (err) => {
+        Swal.fire({
+          title: 'Action impossible',
+          text: err.error?.message || 'Erreur lors du changement de statut.',
+          icon: 'error',
+          confirmButtonColor: '#EF4444'
+        });
+        this.load(); // Revert the drag & drop optimistic update
       }
     });
   }
